@@ -1,4 +1,3 @@
-
 import React, { useMemo, useState, useRef, useEffect } from "react";
 
 // Toggle between light and dark preview modes
@@ -17,6 +16,51 @@ const hexToRgb = (hex) => {
 const srgbToLinear = (c) => { c = c / 255; return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); };
 const linearToSrgb = (c) => { return c <= 0.0031308 ? c * 12.92 : 1.055 * Math.pow(c, 1 / 2.4) - 0.055; };
 const lrv = ({ r, g, b }) => { const R = srgbToLinear(r), G = srgbToLinear(g), B = srgbToLinear(b); const Y = 0.2126*R+0.7152*G+0.0722*B; return Math.round(Y*1000)/10; };
+
+// --- RGB <-> CIELAB ---
+const rgbToXyz = ({ r, g, b }) => {
+  // normalize
+  r = srgbToLinear(r); g = srgbToLinear(g); b = srgbToLinear(b);
+  // D65 standard
+  return {
+    x: (r*0.4124564 + g*0.3575761 + b*0.1804375) / 0.95047,
+    y: (r*0.2126729 + g*0.7151522 + b*0.0721750) / 1.00000,
+    z: (r*0.0193339 + g*0.1191920 + b*0.9503041) / 1.08883,
+  };
+};
+
+const xyzToLab = ({ x, y, z }) => {
+  const f = (t) => (t > 0.008856 ? Math.cbrt(t) : 7.787*t + 16/116);
+  const fx = f(x), fy = f(y), fz = f(z);
+  return {
+    L: 116*fy - 16,
+    a: 500*(fx - fy),
+    b: 200*(fy - fz),
+  };
+};
+
+const labToXyz = ({ L, a, b }) => {
+  const fy = (L + 16) / 116;
+  const fx = a / 500 + fy;
+  const fz = fy - b / 200;
+  const f3 = (t) => (t**3 > 0.008856 ? t**3 : (t - 16/116) / 7.787);
+  return {
+    x: f3(fx) * 0.95047,
+    y: f3(fy) * 1.00000,
+    z: f3(fz) * 1.08883,
+  };
+};
+
+const xyzToRgb = ({ x, y, z }) => {
+  let r = x* 3.2404542 + y*-1.5371385 + z*-0.4985314;
+  let g = x*-0.9692660 + y* 1.8760108 + z* 0.0415560;
+  let b = x* 0.0556434 + y*-0.2040259 + z* 1.0572252;
+  const to8 = (c) => clamp(Math.round(linearToSrgb(c)*255));
+  return { r: to8(r), g: to8(g), b: to8(b) };
+};
+
+const rgbToLab = (rgb) => xyzToLab(rgbToXyz(rgb));
+const labToRgb = (lab) => xyzToRgb(labToXyz(lab));
 
 // --- LRV setter utilities ---
 const clamp01 = (x) => Math.max(0, Math.min(1, x));
@@ -141,8 +185,33 @@ function ColorEditor({ title, color, setColor }) {
         value={Number(lrv(color).toFixed(1))}
         onChange={(e)=>{ const v = parseFloat(e.target.value); if(!Number.isNaN(v)) setColor(colorWithLRV(color, v)); }}
         className={`w-24 rounded-md border px-2 py-1 ${inputClass}`}
-      />
+        />
     </div>
+    <div className={`text-sm font-semibold ${labelClass}`}>CIELAB</div>
+<div className={`flex gap-2 font-medium ${textClass}`}>
+  {(() => {
+    const lab = rgbToLab(color);
+    return (
+      <>
+        <NumberInput
+          value={lab.L.toFixed(1)}
+          onChange={(v)=>setColor(labToRgb({ ...lab, L:v }))}
+          accent={accent}
+        />
+        <NumberInput
+          value={lab.a.toFixed(1)}
+          onChange={(v)=>setColor(labToRgb({ ...lab, a:v }))}
+          accent={accent}
+        />
+        <NumberInput
+          value={lab.b.toFixed(1)}
+          onChange={(v)=>setColor(labToRgb({ ...lab, b:v }))}
+          accent={accent}
+        />
+      </>
+    );
+  })()}
+</div>
   );
 }
 
@@ -160,6 +229,12 @@ function ResultPanel({ result, tAB, tC, colors }) {
         <div className={`font-semibold ${labelClass}`}>HEX</div><div className={`font-mono ${textClass}`}>{resultHex}</div>
         <div className={`font-semibold ${labelClass}`}>RGB</div><div className={`font-mono ${textClass}`}>{`${result.r}, ${result.g}, ${result.b}`}</div>
         <div className={`font-semibold ${labelClass}`}>LRV</div><div className={`font-mono ${textClass}`}>{lrv(result).toFixed(1)}</div>
+        <div className={`font-semibold ${labelClass}`}>CIELAB</div><div className={`font-mono ${textClass}`}>
+         {(() => {
+          const lab = rgbToLab(result);
+          return `${lab.L.toFixed(1)}, ${lab.a.toFixed(1)}, ${lab.b.toFixed(1)}`;
+         })()}
+        </div>
         <div className={`font-semibold ${labelClass}`}>Mix Ratio</div>
         <div className="flex flex-wrap gap-2">
           <Chip rgb={colors[0]}>{`${pctA}% A`}</Chip>

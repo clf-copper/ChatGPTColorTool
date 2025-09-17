@@ -186,9 +186,8 @@ function ColorEditor({ title, color, setColor }) {
         onChange={(e)=>{ const v = parseFloat(e.target.value); if(!Number.isNaN(v)) setColor(colorWithLRV(color, v)); }}
         className={`w-24 rounded-md border px-2 py-1 ${inputClass}`}
         />
-    </div>
-    <div className={`text-sm font-semibold ${labelClass}`}>CIELAB</div>
-<div className={`flex gap-2 font-medium ${textClass}`}>
+  </div>
+    <div className={`text-sm font-semibold ${labelClass}`}>CIELAB</div><div className={`flex gap-2 font-medium ${textClass}`}>
   {(() => {
     const lab = rgbToLab(color);
     return (
@@ -196,24 +195,20 @@ function ColorEditor({ title, color, setColor }) {
         <NumberInput
           value={lab.L.toFixed(1)}
           onChange={(v)=>setColor(labToRgb({ ...lab, L:v }))}
-          accent={accent}
-        />
+          accent={accent}/>
         <NumberInput
           value={lab.a.toFixed(1)}
           onChange={(v)=>setColor(labToRgb({ ...lab, a:v }))}
-          accent={accent}
-        />
+          accent={accent}/>
         <NumberInput
           value={lab.b.toFixed(1)}
           onChange={(v)=>setColor(labToRgb({ ...lab, b:v }))}
-          accent={accent}
-        />
-      </>
-    );
-  })()}
+          accent={accent}/>
+       </>
+     );
+   })()}
+ </div>
 </div>
-  );
-}
 
 // ---------- Result Panel ----------
 function ResultPanel({ result, tAB, tC, colors }) {

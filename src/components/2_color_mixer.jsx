@@ -261,19 +261,33 @@ function SquareBlendVisualizer2({ colorA, colorB, onChange, useDarkMode }) {
 export default function TwoColorMixer() {
   const [colorA,setColorA] = useState({r:236,g:231,b:222});
   const [colorB,setColorB] = useState({r:214,g:200,b:183});
-  const [tB,setTB] = useState(0.5); // proportion of B
+  const [banner, setBanner] = useState(null);
 
+  // Optional pantry (provide your own array or set window.__PAINT_PANTRY__ elsewhere)
+  const PANTRY = (typeof window !== "undefined" && window.__PAINT_PANTRY__) ? window.__PAINT_PANTRY__ : [];
   const result = useMemo(()=>mixRgb2(colorA,colorB,tB),[colorA,colorB,tB]);
 
   return (
     <div className={`mx-auto max-w-6xl p-6 ${bgClass}`}>
       <div className={`mb-4 text-2xl font-bold ${textClass}`}>Color Mixer — 2-Color Section</div>
+
+      {banner && (<div className={`mb-4 rounded-md border px-3 py-2 ${
+          banner.kind==='ok' ? 'border-green-400' :
+          banner.kind==='warn' ? 'border-amber-400' : 'border-slate-300'}`}>
+          <div className="text-sm">{banner.text}</div>
+        </div>
+      )}
+
       <div className="grid gap-8 md:grid-cols-[1.2fr,0.8fr]">
         <div className="space-y-8">
           <div className="grid gap-8 md:grid-cols-2">
             <ColorEditor title="Color A" color={colorA} setColor={setColorA}/>
             <ColorEditor title="Color B" color={colorB} setColor={setColorB}/>
           </div>
+
+          {/* NEW: Target CIELAB → Solve B */}
+          <TargetLabSolver colorA={colorA} tB={tB} setColorB={setColorB} pantry={PANTRY} setBanner={setBanner} />
+
           <BlendControls colorA={colorA} colorB={colorB} tB={tB} setTB={setTB}/>
           <SquareBlendVisualizer2 colorA={colorA} colorB={colorB} onChange={setTB} useDarkMode={useDarkMode}/>
         </div>

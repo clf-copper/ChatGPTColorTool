@@ -1,7 +1,8 @@
 import React from "react";
-import TwoColor from "./components/2_color_section_latest_modular_build";
-import ThreeColor from "./components/3_color_section_lrv_patched";
+import TwoColor from "./components/2_color_mixer";
+import ThreeColor from "./components/3_color_mixer";
 import PaintPantry from "./components/PaintPantry";
+import PantryMixRouter from "./components/PantryMixRouter";
 
 function App() {
   const handleSelectPaint = (paint, mixerType) => {

@@ -217,24 +217,66 @@ function ColorEditor({ title, color, setColor }) {
 
 // ---------- Result Panel ----------
 function ResultPanel({ result, tAB, tC, colors }) {
-  const resultHex = rgbToHex(result);
+  const [override, setOverride] = useState(null); // manual edits
+  const activeResult = override || result;
+  const resultHex = rgbToHex(activeResult);
+
   const pctA = Math.round((1 - tAB) * (1 - tC) * 100);
   const pctB = Math.round(tAB * (1 - tC) * 100);
   const pctC = Math.round(tC * 100);
+
   return (
     <div className="space-y-4">
       <div className={`text-lg font-bold ${textClass}`}>Result</div>
-      <Swatch color={resultHex} />
+      <div className="flex items-center gap-2">
+        <Swatch color={resultHex} />
+        {override && <button onClick={()=>setOverride(null)} className="px-3 py-1 rounded-md border text-sm font-medium hover:bg-gray-100"
+                       >Reset</button>}</div>
+
       <div className="grid grid-cols-2 gap-3 text-sm items-center">
-        <div className={`font-semibold ${labelClass}`}>HEX</div><div className={`font-mono ${textClass}`}>{resultHex}</div>
-        <div className={`font-semibold ${labelClass}`}>RGB</div><div className={`font-mono ${textClass}`}>{`${result.r}, ${result.g}, ${result.b}`}</div>
-        <div className={`font-semibold ${labelClass}`}>LRV</div><div className={`font-mono ${textClass}`}>{lrv(result).toFixed(1)}</div>
-        <div className={`font-semibold ${labelClass}`}>CIELAB</div><div className={`font-mono ${textClass}`}>
-         {(() => {
-          const lab = rgbToLab(result);
-          return `${lab.L.toFixed(1)}, ${lab.a.toFixed(1)}, ${lab.b.toFixed(1)}`;
-         })()}
+        {/* HEX */}
+        <div className={`font-semibold ${labelClass}`}>HEX</div>
+        <HexInput
+          value={rgbToHex(activeResult)}
+          onChange={(h) => {
+            const rgb = hexToRgb(h);
+            if (rgb) setOverride(rgb);
+          }}
+          accent={resultHex}
+        />
+
+        {/* RGB */}
+        <div className={`font-semibold ${labelClass}`}>RGB</div>
+        <div className={`flex gap-2 font-medium ${textClass}`}>
+          <NumberInput value={activeResult.r} onChange={(v)=>setOverride({ ...activeResult, r: clamp(v) })} accent={resultHex}/>
+          <NumberInput value={activeResult.g} onChange={(v)=>setOverride({ ...activeResult, g: clamp(v) })} accent={resultHex}/>
+          <NumberInput value={activeResult.b} onChange={(v)=>setOverride({ ...activeResult, b: clamp(v) })} accent={resultHex}/>
         </div>
+
+        {/* LRV */}
+        <div className={`font-semibold ${labelClass}`}>LRV</div>
+        <NumberInput
+          value={lrv(activeResult).toFixed(1)}
+          onChange={(v)=>setOverride(colorWithLRV(activeResult, v))}
+          accent={resultHex}
+        />
+
+        {/* CIELAB */}
+        <div className={`font-semibold ${labelClass}`}>CIELAB</div>
+        <div className={`flex gap-2 font-medium ${textClass}`}>
+          {(() => {
+            const lab = rgbToLab(activeResult);
+            return (
+              <>
+                <NumberInput value={lab.L.toFixed(1)} onChange={(v)=>setOverride(labToRgb({ ...lab, L:v }))} accent={resultHex}/>
+                <NumberInput value={lab.a.toFixed(1)} onChange={(v)=>setOverride(labToRgb({ ...lab, a:v }))} accent={resultHex}/>
+                <NumberInput value={lab.b.toFixed(1)} onChange={(v)=>setOverride(labToRgb({ ...lab, b:v }))} accent={resultHex}/>
+              </>
+            );
+          })()}
+        </div>
+
+        {/* Mix Ratio */}
         <div className={`font-semibold ${labelClass}`}>Mix Ratio</div>
         <div className="flex flex-wrap gap-2">
           <Chip rgb={colors[0]}>{`${pctA}% A`}</Chip>

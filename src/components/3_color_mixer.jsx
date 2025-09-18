@@ -186,7 +186,7 @@ function ColorEditor({ title, color, setColor }) {
         onChange={(e)=>{ const v = parseFloat(e.target.value); if(!Number.isNaN(v)) setColor(colorWithLRV(color, v)); }}
         className={`w-24 rounded-md border px-2 py-1 ${inputClass}`}
         />
-  </div>
+
     <div className={`text-sm font-semibold ${labelClass}`}>CIELAB</div>
     <div className={`flex gap-2 font-medium ${textClass}`}>
   {(() => {

@@ -258,14 +258,14 @@ function SquareBlendVisualizer2({ colorA, colorB, onChange, useDarkMode }) {
 }
 
 // ---------- Page Shell ----------
-export default function TwoColorMixer() {
-  const [colorA,setColorA] = useState({r:236,g:231,b:222});
-  const [colorB,setColorB] = useState({r:214,g:200,b:183});
+export default function TwoColorMixer({ initialA, initialB }) {
+  const [colorA, setColorA] = useState(initialA?.rgb || { r: 236, g: 231, b: 222 });
+  const [colorB, setColorB] = useState(initialB?.rgb || { r: 214, g: 200, b: 183 });
   const [banner, setBanner] = useState(null);
+  const [tB, setTB] = useState(0.5);
 
-  // Optional pantry (provide your own array or set window.__PAINT_PANTRY__ elsewhere)
   const PANTRY = (typeof window !== "undefined" && window.__PAINT_PANTRY__) ? window.__PAINT_PANTRY__ : [];
-  const result = useMemo(()=>mixRgb2(colorA,colorB,tB),[colorA,colorB,tB]);
+  const result = useMemo(() => mixRgb2(colorA, colorB, tB), [colorA, colorB, tB]);
 
   return (
     <div className={`mx-auto max-w-6xl p-6 ${bgClass}`}>

@@ -257,11 +257,12 @@ function ResultPanel({ result, tAB, tC, colors }) {
         />
 
         {/* CIELAB */}
-        <div className={`font-semibold ${labelClass}`}>CIELAB</div>
-        <div className={`flex gap-2 font-medium ${textClass}`}>
-          {(() => {
-            const lab = rgbToLab(activeResult);
-            return (
+        <div className="cielab-block">
+          <div className={`font-semibold ${labelClass}`}>CIELAB</div>
+          <div className={`flex gap-2 font-medium ${textClass}`}>
+            {(() => {
+             const lab = rgbToLab(activeResult);
+             return (
               <>
                 <NumberInput value={lab.L.toFixed(1)} onChange={(v)=>setOverride(labToRgb({ ...lab, L:v }))} accent={resultHex}/>
                 <NumberInput value={lab.a.toFixed(1)} onChange={(v)=>setOverride(labToRgb({ ...lab, a:v }))} accent={resultHex}/>
@@ -270,6 +271,7 @@ function ResultPanel({ result, tAB, tC, colors }) {
             );
           })()}
         </div>
+      </div>
 
         {/* Mix Ratio */}
         <div className={`font-semibold ${labelClass}`}>Mix Ratio</div>

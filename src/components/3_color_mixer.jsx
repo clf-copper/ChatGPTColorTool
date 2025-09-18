@@ -367,21 +367,22 @@ function SquareBlendVisualizer({ colorA, colorB, colorC, onWeightsChange, useDar
 }
 
 // ---------- Page Shell ----------
-export default function ThreeColorMixer() {
-  const [colorA,setColorA] = useState({r:236,g:231,b:222});
-  const [colorB,setColorB] = useState({r:214,g:200,b:183});
-  const [colorC,setColorC] = useState({r:180,g:170,b:160});
-  const [tAB,setTAB] = useState(0.5);
-  const [tC,setTC] = useState(0.5);
+export default function ThreeColorMixer({ initialA, initialB, initialC }) {
+  const [colorA, setColorA] = useState(initialA?.rgb || { r: 236, g: 231, b: 222 });
+  const [colorB, setColorB] = useState(initialB?.rgb || { r: 214, g: 200, b: 183 });
+  const [colorC, setColorC] = useState(initialC?.rgb || { r: 180, g: 170, b: 160 });
+  const [tAB, setTAB] = useState(0.5);
+  const [tC, setTC] = useState(0.5);
 
-  const handleWeights = ({a,b,c})=>{
+  const handleWeights = ({ a, b, c }) => {
     const tCnew = c;
     const denom = a + b;
     const tABnew = denom > 1e-6 ? b / denom : 0.5;
-    setTAB(tABnew); setTC(tCnew);
+    setTAB(tABnew);
+    setTC(tCnew);
   };
 
-  const result = useMemo(()=>mixRgb3(colorA,colorB,colorC,tAB,tC),[colorA,colorB,colorC,tAB,tC]);
+  const result = useMemo(() => mixRgb3(colorA, colorB, colorC, tAB, tC), [colorA, colorB, colorC, tAB, tC]);
 
   return (
     <div className={`mx-auto max-w-6xl p-6 ${bgClass}`}>

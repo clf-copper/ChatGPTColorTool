@@ -264,8 +264,16 @@ export default function TwoColorMixer({ initialA, initialB }) {
   const [banner, setBanner] = useState(null);
   const [tB, setTB] = useState(0.5);
 
-  const PANTRY = (typeof window !== "undefined" && window.__PAINT_PANTRY__) ? window.__PAINT_PANTRY__ : [];
-  const result = useMemo(() => mixRgb2(colorA, colorB, tB), [colorA, colorB, tB]);
+  // Optional pantry (provide your own array or set window.__PAINT_PANTRY__ elsewhere)
+  const PANTRY =
+    typeof window !== "undefined" && window.__PAINT_PANTRY__
+      ? window.__PAINT_PANTRY__
+      : [];
+
+  const result = useMemo(
+    () => mixRgb2(colorA, colorB, tB),
+    [colorA, colorB, tB]
+  );
 
   return (
     <div className={`mx-auto max-w-6xl p-6 ${bgClass}`}>

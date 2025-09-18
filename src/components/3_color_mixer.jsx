@@ -209,7 +209,6 @@ function ColorEditor({ title, color, setColor }) {
      );
    })()}
  </div>
-</div>
 
 // ---------- Result Panel ----------
 function ResultPanel({ result, tAB, tC, colors }) {

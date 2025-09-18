@@ -1,4 +1,7 @@
 import React, { useMemo, useState, useEffect, useRef } from "react";
+import PaintPantry from "./PaintPantry";
+import TwoColorMixer from "./2_color_mixer";
+import ThreeColorMixer from "./3_color_mixer";
 
 // -------------------------------------------
 // Preview Controls
@@ -92,23 +95,6 @@ const NumInput = ({ value, onChange, min=0, max=100, step=0.1, className="" }) =
 );
 
 // -------------------------------------------
-// Pantry (demo data) — replace with your real source later
-// -------------------------------------------
-const DEMO_PANTRY = [
-  { id: "bm-oc-17", mfr: "Benjamin Moore", type: "Interior Eggshell", name: "White Dove OC-17", hex: "#EAE9E2" },
-  { id: "sw-7008",  mfr: "Sherwin-Williams", type: "Interior Matte", name: "Alabaster SW 7008", hex: "#EEEAE1" },
-  { id: "bm-hc-172", mfr: "Benjamin Moore", type: "Advance Satin", name: "Revere Pewter HC-172", hex: "#CCC7B9" },
-  { id: "sw-9130",  mfr: "Sherwin-Williams", type: "Interior Satin", name: "Cadet SW 9130", hex: "#7E8D96" },
-  { id: "pp-royal", mfr: "PPG", type: "Interior Semi-Gloss", name: "Royal Blue", hex: "#2456C2" },
-];
-
-function enrichPaint(p){
-  const rgb = hexToRgb(p.hex) || {r:240,g:240,b:240};
-  const lab = rgbToLab(rgb);
-  return { ...p, rgb, lrv: lrv(rgb), lab };
-}
-
-// -------------------------------------------
 // Pantry Picker
 // -------------------------------------------
 function PantryPicker({ pantry, onMix }){
@@ -146,159 +132,6 @@ function PantryPicker({ pantry, onMix }){
 }
 
 // -------------------------------------------
-// 2‑Color Mixer (embedded)
-// -------------------------------------------
-function TwoColorMixer({ initialA, initialB }){
-  const [colorA,setColorA] = useState(initialA?.rgb || {r:236,g:231,b:222});
-  const [colorB,setColorB] = useState(initialB?.rgb || {r:214,g:200,b:183});
-  const [metaA,setMetaA] = useState({mfr: initialA?.mfr||"", type: initialA?.type||"", name: initialA?.name||""});
-  const [metaB,setMetaB] = useState({mfr: initialB?.mfr||"", type: initialB?.type||"", name: initialB?.name||""});
-  const [tB,setTB] = useState(0.5);
-
-  const result = useMemo(()=>mix2(colorA,colorB,tB),[colorA,colorB,tB]);
-
-  const inputClass = useDarkMode ? "bg-black text-white" : "bg-white text-black";
-  const labelClass = useDarkMode ? "text-white" : "text-gray-800";
-  const textClass  = useDarkMode ? "text-white" : "text-gray-900";
-
-  const LrvField = ({color,setColor}) => (
-    <input type="number" min={0} max={100} step={0.1} value={Number(lrv(color).toFixed(1))}
-      onChange={(e)=>{ const v=parseFloat(e.target.value); if(!Number.isNaN(v)) setColor(colorWithLRV(color,v)); }}
-      className={`w-24 rounded-md border px-2 py-1 ${inputClass}`} />
-  );
-
-  const Editor = ({title,color,setColor,meta,setMeta})=> (
-    <div className="grid grid-cols-[auto,1fr] gap-x-4 gap-y-2 items-center">
-      <div className="col-span-2 text-xl font-semibold text-black">{title}</div>
-      <div className="col-span-2 grid grid-cols-1 gap-2 md:grid-cols-3">
-        <input className={`rounded-md border px-2 py-1 ${inputClass}`} placeholder="Manufacturer" value={meta.mfr} onChange={e=>setMeta({...meta,mfr:e.target.value})}/>
-        <input className={`rounded-md border px-2 py-1 ${inputClass}`} placeholder="Paint Type (e.g., Eggshell)" value={meta.type} onChange={e=>setMeta({...meta,type:e.target.value})}/>
-        <input className={`rounded-md border px-2 py-1 ${inputClass}`} placeholder="Color Name / Code" value={meta.name} onChange={e=>setMeta({...meta,name:e.target.value})}/>
-      </div>
-      <div className="row-span-4 flex items-center"><div className="h-40 w-5 rounded-lg border" style={{backgroundColor:rgbToHex(color)}}/></div>
-      <div className={`text-sm font-semibold ${labelClass}`}>RGB</div>
-      <div className={`flex gap-2 font-medium ${textClass}`}>
-        <input type="number" className={`w-20 rounded-md border px-2 py-1 ${inputClass}`} value={color.r} onChange={(e)=>setColor({...color,r:clamp(+e.target.value)})}/>
-        <input type="number" className={`w-20 rounded-md border px-2 py-1 ${inputClass}`} value={color.g} onChange={(e)=>setColor({...color,g:clamp(+e.target.value)})}/>
-        <input type="number" className={`w-20 rounded-md border px-2 py-1 ${inputClass}`} value={color.b} onChange={(e)=>setColor({...color,b:clamp(+e.target.value)})}/>
-      </div>
-      <div className={`text-sm font-semibold ${labelClass}`}>HEX</div>
-      <input type="text" className={`w-36 rounded-md border px-2 py-1 ${inputClass}`} value={rgbToHex(color)} onChange={(e)=>{ const rgb=hexToRgb(e.target.value); if(rgb) setColor(rgb); }}/>
-      <div className={`text-sm font-semibold ${labelClass}`}>LRV</div>
-      <LrvField color={color} setColor={setColor}/>
-    </div>
-  );
-
-  return (
-    <div className="grid gap-8 md:grid-cols-[1.2fr,0.8fr]">
-      <div className="space-y-8">
-        <div className="grid gap-8 md:grid-cols-2">
-          <Editor title="Color A" color={colorA} setColor={setColorA} meta={metaA} setMeta={setMetaA}/>
-          <Editor title="Color B" color={colorB} setColor={setColorB} meta={metaB} setMeta={setMetaB}/>
-        </div>
-        <div className="space-y-4">
-          <div className={`text-sm font-semibold ${labelClass}`}>Blend A ↔ B</div>
-          <div className="h-6 w-full rounded-full border" style={{background:`linear-gradient(90deg, ${rgbToHex(colorA)} 0%, ${rgbToHex(colorB)} 100%)`}}/>
-          <input type="range" min={0} max={100} value={Math.round(tB*100)} onChange={(e)=>setTB(Number(e.target.value)/100)} className="w-full"/>
-        </div>
-      </div>
-      <div className="space-y-4">
-        <div className={`text-lg font-bold ${labelClass}`}>Result</div>
-        <div className="h-24 w-full rounded-xl border shadow-sm" style={{backgroundColor:rgbToHex(result)}}/>
-        <div className="grid grid-cols-2 gap-3 text-sm items-center">
-          <div className={`font-semibold ${labelClass}`}>HEX</div><div className={`font-mono ${textClass}`}>{rgbToHex(result)}</div>
-          <div className={`font-semibold ${labelClass}`}>RGB</div><div className={`font-mono ${textClass}`}>{`${result.r}, ${result.g}, ${result.b}`}</div>
-          <div className={`font-semibold ${labelClass}`}>LRV</div><div className={`font-mono ${textClass}`}>{lrv(result).toFixed(1)}</div>
-          <div className={`font-semibold ${labelClass}`}>CIELAB</div><div className={`font-mono ${textClass}`}>{Object.values(rgbToLab(result)).map(n=>n.toFixed(1)).join(", ")}</div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// -------------------------------------------
-// 3‑Color Mixer (embedded)
-// -------------------------------------------
-function ThreeColorMixer({ initialA, initialB, initialC }){
-  const [colorA,setColorA] = useState(initialA?.rgb || {r:236,g:231,b:222});
-  const [colorB,setColorB] = useState(initialB?.rgb || {r:214,g:200,b:183});
-  const [colorC,setColorC] = useState(initialC?.rgb || {r:180,g:170,b:160});
-  const [metaA,setMetaA] = useState({mfr: initialA?.mfr||"", type: initialA?.type||"", name: initialA?.name||""});
-  const [metaB,setMetaB] = useState({mfr: initialB?.mfr||"", type: initialB?.type||"", name: initialB?.name||""});
-  const [metaC,setMetaC] = useState({mfr: initialC?.mfr||"", type: initialC?.type||"", name: initialC?.name||""});
-  const [tAB,setTAB] = useState(0.5);
-  const [tC,setTC]   = useState(0.5);
-
-  const result = useMemo(()=>mix3(colorA,colorB,colorC,tAB,tC),[colorA,colorB,colorC,tAB,tC]);
-
-  const inputClass = useDarkMode ? "bg-black text-white" : "bg-white text-black";
-  const labelClass = useDarkMode ? "text-white" : "text-gray-800";
-  const textClass  = useDarkMode ? "text-white" : "text-gray-900";
-
-  const LrvField = ({color,setColor}) => (
-    <input type="number" min={0} max={100} step={0.1} value={Number(lrv(color).toFixed(1))}
-      onChange={(e)=>{ const v=parseFloat(e.target.value); if(!Number.isNaN(v)) setColor(colorWithLRV(color,v)); }}
-      className={`w-24 rounded-md border px-2 py-1 ${inputClass}`} />
-  );
-
-  const Editor = ({title,color,setColor,meta,setMeta})=> (
-    <div className="grid grid-cols-[auto,1fr] gap-x-4 gap-y-2 items-center">
-      <div className="col-span-2 text-xl font-semibold text-black">{title}</div>
-      <div className="col-span-2 grid grid-cols-1 gap-2 md:grid-cols-3">
-        <input className={`rounded-md border px-2 py-1 ${inputClass}`} placeholder="Manufacturer" value={meta.mfr} onChange={e=>setMeta({...meta,mfr:e.target.value})}/>
-        <input className={`rounded-md border px-2 py-1 ${inputClass}`} placeholder="Paint Type (e.g., Eggshell)" value={meta.type} onChange={e=>setMeta({...meta,type:e.target.value})}/>
-        <input className={`rounded-md border px-2 py-1 ${inputClass}`} placeholder="Color Name / Code" value={meta.name} onChange={e=>setMeta({...meta,name:e.target.value})}/>
-      </div>
-      <div className="row-span-4 flex items-center"><div className="h-40 w-5 rounded-lg border" style={{backgroundColor:rgbToHex(color)}}/></div>
-      <div className={`text-sm font-semibold ${labelClass}`}>RGB</div>
-      <div className={`flex gap-2 font-medium ${textClass}`}>
-        <input type="number" className={`w-20 rounded-md border px-2 py-1 ${inputClass}`} value={color.r} onChange={(e)=>setColor({...color,r:clamp(+e.target.value)})}/>
-        <input type="number" className={`w-20 rounded-md border px-2 py-1 ${inputClass}`} value={color.g} onChange={(e)=>setColor({...color,g:clamp(+e.target.value)})}/>
-        <input type="number" className={`w-20 rounded-md border px-2 py-1 ${inputClass}`} value={color.b} onChange={(e)=>setColor({...color,b:clamp(+e.target.value)})}/>
-      </div>
-      <div className={`text-sm font-semibold ${labelClass}`}>HEX</div>
-      <input type="text" className={`w-36 rounded-md border px-2 py-1 ${inputClass}`} value={rgbToHex(color)} onChange={(e)=>{ const rgb=hexToRgb(e.target.value); if(rgb) setColor(rgb); }}/>
-      <div className={`text-sm font-semibold ${labelClass}`}>LRV</div>
-      <LrvField color={color} setColor={setColor}/>
-    </div>
-  );
-
-  return (
-    <div className="grid gap-8 md:grid-cols-[1.2fr,0.8fr]">
-      <div className="space-y-8">
-        <div className="grid gap-8 md:grid-cols-3">
-          <Editor title="Color A" color={colorA} setColor={setColorA} meta={metaA} setMeta={setMetaA}/>
-          <Editor title="Color B" color={colorB} setColor={setColorB} meta={metaB} setMeta={setMetaB}/>
-          <Editor title="Color C" color={colorC} setColor={setColorC} meta={metaC} setMeta={setMetaC}/>
-        </div>
-        <div className="space-y-6">
-          <div>
-            <div className={`text-sm font-semibold ${labelClass}`}>Blend A ↔ B</div>
-            <div className="h-6 w-full rounded-full border" style={{background:`linear-gradient(90deg, ${rgbToHex(colorA)} 0%, ${rgbToHex(colorB)} 100%)`}}/>
-            <input type="range" min={0} max={100} value={Math.round(tAB*100)} onChange={(e)=>setTAB(Number(e.target.value)/100)} className="w-full"/>
-          </div>
-          <div>
-            <div className={`text-sm font-semibold ${labelClass}`}>Blend (AB) ↔ C</div>
-            <div className="h-6 w-full rounded-full border" style={{background:`linear-gradient(90deg, ${rgbToHex(mix3(colorA,colorB,colorC,tAB,0))} 0%, ${rgbToHex(colorC)} 100%)`}}/>
-            <input type="range" min={0} max={100} value={Math.round(tC*100)} onChange={(e)=>setTC(Number(e.target.value)/100)} className="w-full"/>
-          </div>
-        </div>
-      </div>
-      <div className="space-y-4">
-        <div className={`text-lg font-bold ${labelClass}`}>Result</div>
-        <div className="h-24 w-full rounded-xl border shadow-sm" style={{backgroundColor:rgbToHex(result)}}/>
-        <div className="grid grid-cols-2 gap-3 text-sm items-center">
-          <div className={`font-semibold ${labelClass}`}>HEX</div><div className={`font-mono ${textClass}`}>{rgbToHex(result)}</div>
-          <div className={`font-semibold ${labelClass}`}>RGB</div><div className={`font-mono ${textClass}`}>{`${result.r}, ${result.g}, ${result.b}`}</div>
-          <div className={`font-semibold ${labelClass}`}>LRV</div><div className={`font-mono ${textClass}`}>{lrv(result).toFixed(1)}</div>
-          <div className={`font-semibold ${labelClass}`}>CIELAB</div><div className={`font-mono ${textClass}`}>{Object.values(rgbToLab(result)).map(n=>n.toFixed(1)).join(", ")}</div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// -------------------------------------------
 // Shell: Pantry → choose 2 or 3 → route to correct mixer
 // -------------------------------------------
 export default function PantryRouterApp(){
@@ -314,8 +147,18 @@ export default function PantryRouterApp(){
     <div className={`mx-auto max-w-6xl p-6 ${bgClass}`}>
       <div className={`mb-4 text-2xl font-bold ${textClass}`}>Paint Pantry → Mixer</div>
       {stage === "pantry" && (
-        <PantryPicker pantry={DEMO_PANTRY} onMix={onMix} />
-      )}
+       <PaintPantry
+         onSelectPaint={(paint, mode) => {
+           if (mode === 2) {
+             setPicked([paint]); // later we can allow selecting 2 paints
+             setStage("mix2");
+           } else if (mode === 3) {
+             setPicked([paint]); // later we can allow selecting 3 paints
+             setStage("mix3");
+           }
+         }}
+       />
+     )}
       {stage === "mix2" && (
         <TwoColorMixer initialA={picked[0]} initialB={picked[1]} />
       )}

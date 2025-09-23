@@ -164,21 +164,52 @@ function ColorEditor({ title, color, setColor }) {
       <div className="col-span-2 text-xl font-semibold text-black">{title}</div>
       {/* Manufacturer / Paint Type / Color Name */}
       <div className="col-span-2 grid grid-cols-1 gap-2 md:grid-cols-3">
-      {/* Manufacturer dropdown */}
-        <select
-          value={mfr} onChange={(e) => setMfr(e.target.value)} className={`rounded-md border px-2 py-1 ${inputClass}`}>
-          <option value="">Select Manufacturer</option> {[...new Set(paintColors.map(c => c.mfr))].map(m => (<option key={m} value={m}>{m}</option>))}
-        </select>
-        {/* Color name/code dropdown */}
-        <select value={cname} onChange={(e) => {
-      const chosen = paintColors.find(c => c.code === e.target.value);
-      if (chosen) {setCname(chosen.name + " " + chosen.code); setMfr(chosen.mfr); setColor(chosen.rgb);
-                   // auto-populate RGB
-                  }
-    }}
-          className={`rounded-md border px-2 py-1 ${inputClass}`}><option value="">Select Color</option>
-  {paintColors.filter(c => !mfr || c.mfr === mfr).map(c => (<option key={c.code} value={c.code}>{c.name} ({c.code})</option>))}
-        </select>
+{/* Manufacturer dropdown */}
+<select
+  value={mfr}
+  onChange={(e) => setMfr(e.target.value)}
+  className={`rounded-md border px-2 py-1 ${inputClass}`}
+>
+  <option value="">Select Manufacturer</option>
+  {[...new Set(paintColors.map(c => c.mfr))].map((m) => (
+    <option key={m} value={m}>
+      {m}
+    </option>
+  ))}
+</select>
+
+{/* Paint Type stays as free text for now */}
+<input
+  type="text"
+  value={ptype}
+  onChange={(e) => setPtype(e.target.value)}
+  placeholder="Paint Type (e.g., Eggshell)"
+  className={`rounded-md border px-2 py-1 ${inputClass}`}
+/>
+
+{/* Color Name/Code dropdown */}
+<select
+  value={cname}
+  onChange={(e) => {
+    const chosen = paintColors.find((c) => c.code === e.target.value);
+    if (chosen) {
+      setCname(chosen.name + " " + chosen.code);
+      setMfr(chosen.mfr);
+      setColor(chosen.rgb); // auto-populate RGB
+    }
+  }}
+  className={`rounded-md border px-2 py-1 ${inputClass}`}
+>
+  <option value="">Select Color</option>
+  {paintColors
+    .filter((c) => !mfr || c.mfr === mfr)
+    .map((c) => (
+      <option key={c.code} value={c.code}>
+        {c.name} ({c.code})
+      </option>
+    ))}
+</select>
+
       </div>
       <div className="row-span-4 flex items-center"><VBar color={rgbToHex(color)} /></div>
       <div className={`text-sm font-semibold ${labelClass}`}>RGB</div>

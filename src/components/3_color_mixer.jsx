@@ -258,7 +258,7 @@ function ColorEditor({ title, color, setColor }) {
 // ---------- Result Panel ----------
   function ResultPanel({ result, tAB, tC, colors }) {
     const [override, setOverride] = useState(null); // manual edits
-    const activeResult = override || results
+    const activeResult = override || result
     const resultHex = rgbToHex(activeResult);
 
   const pctA = Math.round((1 - tAB) * (1 - tC) * 100);

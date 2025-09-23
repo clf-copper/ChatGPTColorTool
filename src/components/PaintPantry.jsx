@@ -1,5 +1,5 @@
-
 import React, { useState, useEffect } from "react";
+import paintColors from "chatgptcolortool/src/data/paintColors.json";
 
 export default function PaintPantry({ onSelectPaint }) {
   const [paints, setPaints] = useState([]);

@@ -1,4 +1,5 @@
 import React, { useMemo, useState, useRef, useEffect } from "react";
+import paintColors from "chatgptcolortool/src/data/paintColors.json";
 
 // Toggle between light and dark preview modes
 const useDarkMode = false;

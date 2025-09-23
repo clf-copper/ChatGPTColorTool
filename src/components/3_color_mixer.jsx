@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useRef, useEffect } from "react";
-import paintColors from "chatgptcolortool/src/data/paintColors.json";
+import paintColors from "../data/paintColors.json";
 
 // Toggle between light and dark preview modes
 const useDarkMode = false;
@@ -164,9 +164,21 @@ function ColorEditor({ title, color, setColor }) {
       <div className="col-span-2 text-xl font-semibold text-black">{title}</div>
       {/* Manufacturer / Paint Type / Color Name */}
       <div className="col-span-2 grid grid-cols-1 gap-2 md:grid-cols-3">
-        <TextInput value={mfr} onChange={setMfr} placeholder="Manufacturer" />
-        <TextInput value={ptype} onChange={setPtype} placeholder="Paint Type (e.g., Eggshell)" />
-        <TextInput value={cname} onChange={setCname} placeholder="Color Name / Code" />
+      {/* Manufacturer dropdown */}
+        <select
+          value={mfr} onChange={(e) => setMfr(e.target.value)} className={`rounded-md border px-2 py-1 ${inputClass}`}>
+          <option value="">Select Manufacturer</option> {[...new Set(paintColors.map(c => c.mfr))].map(m => (<option key={m} value={m}>{m}</option>))}
+        </select>
+        {/* Color name/code dropdown */}
+        <select value={cname} onChange={(e) => {
+      const chosen = paintColors.find(c => c.code === e.target.value);
+      if (chosen) {setCname(chosen.name + " " + chosen.code); setMfr(chosen.mfr); setColor(chosen.rgb);
+                   // auto-populate RGB
+                  }
+    }}
+          className={`rounded-md border px-2 py-1 ${inputClass}`}><option value="">Select Color</option>
+  {paintColors.filter(c => !mfr || c.mfr === mfr).map(c => (<option key={c.code} value={c.code}>{c.name} ({c.code})</option>))}
+        </select>
       </div>
       <div className="row-span-4 flex items-center"><VBar color={rgbToHex(color)} /></div>
       <div className={`text-sm font-semibold ${labelClass}`}>RGB</div>
@@ -213,10 +225,10 @@ function ColorEditor({ title, color, setColor }) {
 </div>
 
 // ---------- Result Panel ----------
-function ResultPanel({ result, tAB, tC, colors }) {
-  const [override, setOverride] = useState(null); // manual edits
-  const activeResult = override || result;
-  const resultHex = rgbToHex(activeResult);
+  function ResultPanel({ result, tAB, tC, colors }) {
+    const [override, setOverride] = useState(null); // manual edits
+    const activeResult = override || results
+    const resultHex = rgbToHex(activeResult);
 
   const pctA = Math.round((1 - tAB) * (1 - tC) * 100);
   const pctB = Math.round(tAB * (1 - tC) * 100);

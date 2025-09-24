@@ -1,8 +1,5 @@
 import React, { useMemo, useState, useRef, useEffect } from "react";
 import paintColors from "../data/paintColors.json";
-const [metaA, setMetaA] = useState({ mfr: "", type: "", name: "" });
-const [metaB, setMetaB] = useState({ mfr: "", type: "", name: "" });
-
 
 // Toggle between light and dark preview modes
 const useDarkMode = false;

@@ -97,11 +97,21 @@ const NumInput = ({ value, onChange, min=0, max=100, step=0.1, className="" }) =
 // -------------------------------------------
 // Pantry Picker
 // -------------------------------------------
-function PantryPicker({ pantry, onMix }){
+function PantryPicker({ onMix }){
+  const [paints, setPaints] = useState([]);
   const [selected, setSelected] = useState([]); // ids
-  const toggle = (id)=> setSelected(s=> s.includes(id) ? s.filter(x=>x!==id) : (s.length<3 ? [...s,id] : s));
-  const paints = pantry.map(enrichPaint);
+  
+  useEffect(() => {
+    const stored = localStorage.getItem("paintPantry");
+    if (stored) setPaints(JSON.parse(stored));
+  }, []);
+
+  const toggle = (id)=> setSelected(s=> 
+    s.includes(id) ? s.filter(x=>x!==id) : (s.length<3 ? [...s,id] : s)
+  );
+
   const chosen = selected.map(id => paints.find(p=>p.id===id)).filter(Boolean);
+
 
   const canMix = chosen.length>=2 && chosen.length<=3;
   const disabledReason = chosen.length<2 ? "Select 2–3 paints" : chosen.length>3 ? "Max 3" : "";

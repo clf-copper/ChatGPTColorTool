@@ -1,5 +1,5 @@
-
 import React, { useState, useEffect } from "react";
+import paintColors from "../data/paintcolors.json";
 
 export default function PaintPantry({ onSelectPaint }) {
   const [paints, setPaints] = useState([]);
@@ -121,9 +121,47 @@ export default function PaintPantry({ onSelectPaint }) {
             <option key={opt} value={opt}>{opt}</option>
           ))}
         </select>
-
-        <input name="mfr" placeholder="Manufacturer" value={formData.mfr} onChange={handleChange} className="border p-2 rounded" />
-        <input name="name" placeholder="Color Name" value={formData.name} onChange={handleChange} className="border p-2 rounded" />
+        
+        {/* Manufacturer dropdown */}
+        <select
+          name="mfr"
+          value={formData.mfr}
+          onChange={handleChange}
+          className="border p-2 rounded"
+          >
+          <option value="">Select Manufacturer</option>
+          {[...new Set(paintColors.map(c => c.mfr))].map(m => (
+            <option key={m} value={m}>{m}</option>))}
+        </select>
+        
+        {/* Color Name/Code dropdown */}
+        <select
+          name="name"
+          value={formData.name}
+          onChange={(e) => {
+            const chosen = paintColors.find(c => c.code === e.target.value);
+            if (chosen) {setFormData({...formData,
+                                      name: chosen.name + " " + chosen.code,
+                                      mfr: chosen.mfr,
+                                      r: chosen.rgb.r,
+                                      g: chosen.rgb.g,
+                                      b: chosen.rgb.b,
+                                      hex: chosen.hex,
+                                      lrv: chosen.lrv
+                                     });
+                        }
+          }}
+          className="border p-2 rounded"
+          >
+          <option value="">Select Color</option>
+          {paintColors
+            .filter(c => !formData.mfr || c.mfr === formData.mfr)
+            .map(c => (
+              <option key={c.code} value={c.code}>
+                {c.name} ({c.code})
+              </option>
+            ))}
+        </select>
 
         <div className="flex col-span-2 md:col-span-1">
           <input name="volume" placeholder="Volume" value={formData.volume} onChange={handleChange} className="border p-2 rounded w-2/3" />

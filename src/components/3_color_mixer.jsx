@@ -452,6 +452,9 @@ export default function ThreeColorMixer({ initialA, initialB, initialC }) {
   const [colorA, setColorA] = useState(initialA?.rgb || { r: 236, g: 231, b: 222 });
   const [colorB, setColorB] = useState(initialB?.rgb || { r: 214, g: 200, b: 183 });
   const [colorC, setColorC] = useState(initialC?.rgb || { r: 180, g: 170, b: 160 });
+  const [metaA, setMetaA] = useState({ mfr: "", type: "", name: "" });
+  const [metaB, setMetaB] = useState({ mfr: "", type: "", name: "" });
+  const [metaC, setMetaC] = useState({ mfr: "", type: "", name: "" });
   const [tAB, setTAB] = useState(0.5);
   const [tC, setTC] = useState(0.5);
 
@@ -471,9 +474,9 @@ export default function ThreeColorMixer({ initialA, initialB, initialC }) {
       <div className="grid gap-8 md:grid-cols-[1.2fr,0.8fr]">
         <div className="space-y-8">
           <div className="grid gap-8 md:grid-cols-3">
-            <ColorEditor title="Color A" color={colorA} setColor={setColorA}/>
-            <ColorEditor title="Color B" color={colorB} setColor={setColorB}/>
-            <ColorEditor title="Color C" color={colorC} setColor={setColorC}/>
+            <ColorEditor title="Color A" color={colorA} setColor={setColorA} meta={metaA} setMeta={setMetaA} />
+            <ColorEditor title="Color B" color={colorB} setColor={setColorB} meta={metaB} setMeta={setMetaB} />
+            <ColorEditor title="Color C" color={colorC} setColor={setColorC} meta={metaC} setMeta={setMetaC} />
           </div>
           <BlendControls colorA={colorA} colorB={colorB} colorC={colorC} tAB={tAB} setTAB={setTAB} tC={tC} setTC={setTC}/>
           <SquareBlendVisualizer colorA={colorA} colorB={colorB} colorC={colorC} onWeightsChange={handleWeights} useDarkMode={useDarkMode}/>

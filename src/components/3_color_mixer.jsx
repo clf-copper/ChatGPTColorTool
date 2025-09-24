@@ -152,74 +152,85 @@ const Chip = ({ rgb, children }) => {
 };
 
 // ---------- Color Editor ----------
-function ColorEditor({ title, color, setColor }) {
+function ColorEditor({ title, color, setColor, meta, setMeta }) {
   const hex = rgbToHex(color);
-  const onHexChange = (h) => { const rgb = hexToRgb(h); if(rgb) setColor(rgb); };
+  const onHexChange = (h) => {
+    const rgb = hexToRgb(h);
+    if (rgb) setColor(rgb);
+  };
   const accent = usePreviewColors ? rgbToHex(color) : undefined;
-  const [mfr, setMfr] = useState("");
-  const [ptype, setPtype] = useState("");
-  const [cname, setCname] = useState("");
+  const lab = rgbToLab(color);
+
   return (
     <div className="grid grid-cols-[auto,1fr] gap-x-4 gap-y-2 items-center">
       <div className="col-span-2 text-xl font-semibold text-black">{title}</div>
+
       {/* Manufacturer / Paint Type / Color Name */}
       <div className="col-span-2 grid grid-cols-1 gap-2 md:grid-cols-3">
-{/* Manufacturer dropdown */}
-<select
-  value={mfr}
-  onChange={(e) => setMfr(e.target.value)}
-  className={`rounded-md border px-2 py-1 ${inputClass}`}
->
-  <option value="">Select Manufacturer</option>
-  {[...new Set(paintColors.map(c => c.mfr))].map((m) => (
-    <option key={m} value={m}>
-      {m}
-    </option>
-  ))}
-</select>
+        {/* Manufacturer dropdown */}
+        <select
+          value={meta.mfr}
+          onChange={(e) => setMeta({ ...meta, mfr: e.target.value })}
+          className={`rounded-md border px-2 py-1 ${inputClass}`}
+        >
+          <option value="">Select Manufacturer</option>
+          {[...new Set(paintColors.map((c) => c.mfr))].map((m) => (
+            <option key={m} value={m}>
+              {m}
+            </option>
+          ))}
+        </select>
 
-{/* Paint Type stays as free text for now */}
-<input
-  type="text"
-  value={ptype}
-  onChange={(e) => setPtype(e.target.value)}
-  placeholder="Paint Type (e.g., Eggshell)"
-  className={`rounded-md border px-2 py-1 ${inputClass}`}
-/>
+        {/* Paint Type (free text for now) */}
+        <input
+          type="text"
+          value={meta.type}
+          onChange={(e) => setMeta({ ...meta, type: e.target.value })}
+          placeholder="Paint Type (e.g., Eggshell)"
+          className={`rounded-md border px-2 py-1 ${inputClass}`}
+        />
 
-{/* Color Name/Code dropdown */}
-<select
-  value={cname}
-  onChange={(e) => {
-    const chosen = paintColors.find((c) => c.code === e.target.value);
-    if (chosen) {
-      setCname(chosen.name + " " + chosen.code);
-      setMfr(chosen.mfr);
-      setColor(chosen.rgb); // auto-populate RGB
-    }
-  }}
-  className={`rounded-md border px-2 py-1 ${inputClass}`}
->
-  <option value="">Select Color</option>
-  {paintColors
-    .filter((c) => !mfr || c.mfr === mfr)
-    .map((c) => (
-      <option key={c.code} value={c.code}>
-        {c.name} ({c.code})
-      </option>
-    ))}
-</select>
-
+        {/* Color Name/Code dropdown */}
+        <select
+          value={meta.name}
+          onChange={(e) => {
+            const chosen = paintColors.find((c) => c.code === e.target.value);
+            if (chosen) {
+              setMeta({ ...meta, name: chosen.name + " " + chosen.code, mfr: chosen.mfr });
+              setColor(chosen.rgb); // auto-populate RGB
+            }
+          }}
+          className={`rounded-md border px-2 py-1 ${inputClass}`}
+        >
+          <option value="">Select Color</option>
+          {paintColors
+            .filter((c) => !meta.mfr || c.mfr === meta.mfr)
+            .map((c) => (
+              <option key={c.code} value={c.code}>
+                {c.name} ({c.code})
+              </option>
+            ))}
+        </select>
       </div>
-      <div className="row-span-4 flex items-center"><VBar color={rgbToHex(color)} /></div>
+
+      {/* Vertical color bar */}
+      <div className="row-span-6 flex items-center">
+        <VBar color={rgbToHex(color)} />
+      </div>
+
+      {/* RGB inputs */}
       <div className={`text-sm font-semibold ${labelClass}`}>RGB</div>
       <div className={`flex gap-2 font-medium ${textClass}`}>
-        <NumberInput value={color.r} onChange={(v)=>setColor({...color,r:clamp(v)})} accent={accent}/>
-        <NumberInput value={color.g} onChange={(v)=>setColor({...color,g:clamp(v)})} accent={accent}/>
-        <NumberInput value={color.b} onChange={(v)=>setColor({...color,b:clamp(v)})} accent={accent}/>
+        <NumberInput value={color.r} onChange={(v) => setColor({ ...color, r: clamp(v) })} accent={accent} />
+        <NumberInput value={color.g} onChange={(v) => setColor({ ...color, g: clamp(v) })} accent={accent} />
+        <NumberInput value={color.b} onChange={(v) => setColor({ ...color, b: clamp(v) })} accent={accent} />
       </div>
+
+      {/* HEX input */}
       <div className={`text-sm font-semibold ${labelClass}`}>HEX</div>
-      <HexInput value={hex} onChange={onHexChange} accent={accent}/>
+      <HexInput value={hex} onChange={onHexChange} accent={accent} />
+
+      {/* LRV input */}
       <div className={`text-sm font-semibold ${labelClass}`}>LRV</div>
       <input
         type="number"
@@ -227,33 +238,59 @@ function ColorEditor({ title, color, setColor }) {
         max={100}
         step={0.1}
         value={Number(lrv(color).toFixed(1))}
-        onChange={(e)=>{ const v = parseFloat(e.target.value); if(!Number.isNaN(v)) setColor(colorWithLRV(color, v)); }}
+        onChange={(e) => {
+          const v = parseFloat(e.target.value);
+          if (!Number.isNaN(v)) setColor(colorWithLRV(color, v));
+        }}
         className={`w-24 rounded-md border px-2 py-1 ${inputClass}`}
+      />
+
+      {/* CIELAB inputs */}
+      <div className={`text-sm font-semibold ${labelClass}`}>CIELAB</div>
+      <div className={`flex flex-wrap items-center gap-2 ${textClass}`}>
+        <input
+          type="number"
+          min={0}
+          max={100}
+          step={0.1}
+          value={Number(lab.L.toFixed(1))}
+          onChange={(e) => {
+            const L = parseFloat(e.target.value);
+            if (!Number.isNaN(L)) setColor(labToRgb({ L, a: lab.a, b: lab.b }));
+          }}
+          className={`w-20 rounded-md border px-2 py-1 ${inputClass}`}
+          placeholder="L"
         />
-   <div>
-    <div className={`text-sm font-semibold ${labelClass}`}>CIELAB</div>
-    <div className={`flex gap-2 font-medium ${textClass}`}>
-  {(() => {
-    const lab = rgbToLab(color);
-    return (
-      <>
-        <NumberInput
-          value={lab.L.toFixed(1)}
-          onChange={(v)=>setColor(labToRgb({ ...lab, L:v }))}
-          accent={accent}/>
-        <NumberInput
-          value={lab.a.toFixed(1)}
-          onChange={(v)=>setColor(labToRgb({ ...lab, a:v }))}
-          accent={accent}/>
-        <NumberInput
-          value={lab.b.toFixed(1)}
-          onChange={(v)=>setColor(labToRgb({ ...lab, b:v }))}
-          accent={accent}/>
-       </>
-     );
-   })()}
- </div>
-</div>
+        <input
+          type="number"
+          min={-128}
+          max={128}
+          step={0.1}
+          value={Number(lab.a.toFixed(1))}
+          onChange={(e) => {
+            const a = parseFloat(e.target.value);
+            if (!Number.isNaN(a)) setColor(labToRgb({ L: lab.L, a, b: lab.b }));
+          }}
+          className={`w-20 rounded-md border px-2 py-1 ${inputClass}`}
+          placeholder="a"
+        />
+        <input
+          type="number"
+          min={-128}
+          max={128}
+          step={0.1}
+          value={Number(lab.b.toFixed(1))}
+          onChange={(e) => {
+            const b = parseFloat(e.target.value);
+            if (!Number.isNaN(b)) setColor(labToRgb({ L: lab.L, a: lab.a, b }));
+          }}
+          className={`w-20 rounded-md border px-2 py-1 ${inputClass}`}
+          placeholder="b"
+        />
+      </div>
+    </div>
+  );
+}
 
 // ---------- Result Panel ----------
   function ResultPanel({ result, tAB, tC, colors }) {

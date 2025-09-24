@@ -134,16 +134,6 @@ export default function PaintPantry({ onSelectPaint }) {
             <option key={m} value={m}>{m}</option>))}
         </select>
         
-        {/* Paint Type (free text for now) */}
-        <input
-          type="text"
-          name="type"
-          value={formData.type}
-          onChange={handleChange}
-          placeholder="Paint Type (e.g., Eggshell)"
-          className="border p-2 rounded"
-          />
-        
         {/* Color Name/Code dropdown */}
         <select
           name="name"

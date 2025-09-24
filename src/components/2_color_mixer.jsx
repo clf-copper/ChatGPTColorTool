@@ -385,8 +385,8 @@ export default function TwoColorMixer({ initialA, initialB }) {
       <div className="grid gap-8 md:grid-cols-[1.2fr,0.8fr]">
         <div className="space-y-8">
           <div className="grid gap-8 md:grid-cols-2">
-            <ColorEditor title="Color A" color={colorA} setColor={setColorA}/>
-            <ColorEditor title="Color B" color={colorB} setColor={setColorB}/>
+            <ColorEditor title="Color A" color={colorA} setColor={setColorA} meta={metaA} setMeta={setMetaA} />
+            <ColorEditor title="Color B" color={colorB} setColor={setColorB} meta={metaB} setMeta={setMetaB} />
           </div>
 
           {/* NEW: Target CIELAB → Solve B */}

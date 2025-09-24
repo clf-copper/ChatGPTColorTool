@@ -360,6 +360,96 @@ function SquareBlendVisualizer2({ colorA, colorB, onChange, useDarkMode }) {
   );
 }
 
+// ---------- Target CIELAB Solver ----------
+function TargetLabSolver({ colorA, tB, setColorB, pantry, setBanner }) {
+  const [targetLab, setTargetLab] = useState({ L: 70, a: 0, b: 0 });
+
+  const solveForB = (colorA, targetLab, tB) => {
+    const labA = rgbToLab(colorA);
+    if (tB <= 1e-6) return null;
+
+    // Solve B in Lab space: target = (1 - tB)*A + tB*B
+    const L = (targetLab.L - (1 - tB) * labA.L) / tB;
+    const a = (targetLab.a - (1 - tB) * labA.a) / tB;
+    const b = (targetLab.b - (1 - tB) * labA.b) / tB;
+
+    return labToRgb({ L, a, b });
+  };
+
+  const handleSolve = () => {
+    const solvedB = solveForB(colorA, targetLab, tB);
+    if (!solvedB) return;
+
+    // update mixer Color B
+    setColorB(solvedB);
+
+    // pantry check
+    if (pantry && pantry.length > 0) {
+      let closest = null;
+      let minDist = Infinity;
+
+      pantry.forEach((p) => {
+        if (!p.r || !p.g || !p.b) return;
+        const d = Math.sqrt(
+          Math.pow(p.r - solvedB.r, 2) +
+          Math.pow(p.g - solvedB.g, 2) +
+          Math.pow(p.b - solvedB.b, 2)
+        );
+        if (d < minDist) {
+          minDist = d;
+          closest = p;
+        }
+      });
+
+      if (closest) {
+        setBanner({
+          kind: "ok",
+          text: `Closest pantry match: ${closest.name} (${closest.mfr}) — ΔRGB ≈ ${minDist.toFixed(1)}`
+        });
+      } else {
+        setBanner({ kind: "warn", text: "No pantry paints available to compare." });
+      }
+    }
+  };
+
+  return (
+    <div className="p-4 border rounded space-y-3 bg-gray-50">
+      <div className="font-semibold">🎯 Target CIELAB Solver</div>
+
+      <div className="flex gap-2 text-sm">
+        <input
+          type="number"
+          value={targetLab.L}
+          onChange={(e) => setTargetLab({ ...targetLab, L: parseFloat(e.target.value) })}
+          className="border rounded px-2 py-1 w-20"
+          placeholder="L"
+        />
+        <input
+          type="number"
+          value={targetLab.a}
+          onChange={(e) => setTargetLab({ ...targetLab, a: parseFloat(e.target.value) })}
+          className="border rounded px-2 py-1 w-20"
+          placeholder="a"
+        />
+        <input
+          type="number"
+          value={targetLab.b}
+          onChange={(e) => setTargetLab({ ...targetLab, b: parseFloat(e.target.value) })}
+          className="border rounded px-2 py-1 w-20"
+          placeholder="b"
+        />
+      </div>
+
+      <button
+        onClick={handleSolve}
+        className="px-3 py-1 rounded bg-blue-600 text-white hover:bg-blue-700 text-sm"
+      >
+        Solve for Color B
+      </button>
+    </div>
+  );
+}
+      
 // ---------- Page Shell ----------
 export default function TwoColorMixer({ initialA, initialB }) {
   const [colorA, setColorA] = useState(initialA?.rgb || { r: 236, g: 231, b: 222 });

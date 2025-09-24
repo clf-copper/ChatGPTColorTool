@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useRef, useEffect } from "react";
-import paintColors from "../data/paintColors.json";
+import paintColors from "../data/paintcolors.json";
 
 // Toggle between light and dark preview modes
 const useDarkMode = false;

@@ -15,9 +15,12 @@ function App() {
   return (
     <div className="p-6 space-y-8">
       <h1 className="text-3xl font-bold">🎨 Paint Pantry App</h1>
+      {/* Mixers */}
       <TwoColor />
       <ThreeColor />
+      {/* Pantry system */}
       <PaintPantry onSelectPaint={handleSelectPaint} />
+      <PantryMixRouter /> {/* 👈 Now included */}
     </div>
   );
 }

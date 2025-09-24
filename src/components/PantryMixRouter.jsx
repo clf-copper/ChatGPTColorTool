@@ -1,4 +1,5 @@
 import React, { useMemo, useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import PaintPantry from "./PaintPantry";
 import TwoColorMixer from "./2_color_mixer";
 import ThreeColorMixer from "./3_color_mixer";
@@ -215,15 +216,17 @@ function PantryPicker({ onMix }) {
 }
 
 // -------------------------------------------
-// Shell: Pantry → choose 2 or 3 → route to correct mixer
+// Shell: Pantry → navigate to correct mixer
 // -------------------------------------------
 export default function PantryRouterApp() {
-  const [stage, setStage] = useState("pantry");
-  const [picked, setPicked] = useState([]);
+  const navigate = useNavigate();
 
   const onMix = (chosen) => {
-    setPicked(chosen);
-    setStage(chosen.length === 2 ? "mix2" : "mix3");
+    if (chosen.length === 2) {
+      navigate("/two-color", { state: { chosen } });
+    } else if (chosen.length === 3) {
+      navigate("/three-color", { state: { chosen } });
+    }
   };
 
   return (
@@ -231,39 +234,7 @@ export default function PantryRouterApp() {
       <div className={`mb-4 text-2xl font-bold ${textClass}`}>
         Paint Pantry → Mixer
       </div>
-      {stage === "pantry" && (
-        <PaintPantry
-          onSelectPaint={(paint, mode) => {
-            if (mode === 2) {
-              setPicked([paint]); // later we can allow selecting 2 paints
-              setStage("mix2");
-            } else if (mode === 3) {
-              setPicked([paint]); // later we can allow selecting 3 paints
-              setStage("mix3");
-            }
-          }}
-        />
-      )}
-      {stage === "mix2" && (
-        <TwoColorMixer initialA={picked[0]} initialB={picked[1]} />
-      )}
-      {stage === "mix3" && (
-        <ThreeColorMixer
-          initialA={picked[0]}
-          initialB={picked[1]}
-          initialC={picked[2]}
-        />
-      )}
-      {stage !== "pantry" && (
-        <div className="mt-6">
-          <button
-            onClick={() => setStage("pantry")}
-            className="rounded-md border px-3 py-1"
-          >
-            ← Back to Pantry
-          </button>
-        </div>
-      )}
+      <PantryPicker onMix={onMix} />
     </div>
   );
 }

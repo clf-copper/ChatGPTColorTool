@@ -1,5 +1,8 @@
 import React, { useMemo, useState, useRef, useEffect } from "react";
 import paintColors from "../data/paintColors.json";
+const [metaA, setMetaA] = useState({ mfr: "", type: "", name: "" });
+const [metaB, setMetaB] = useState({ mfr: "", type: "", name: "" });
+
 
 // Toggle between light and dark preview modes
 const useDarkMode = false;
@@ -355,6 +358,8 @@ function SquareBlendVisualizer2({ colorA, colorB, onChange, useDarkMode }) {
 export default function TwoColorMixer({ initialA, initialB }) {
   const [colorA, setColorA] = useState(initialA?.rgb || { r: 236, g: 231, b: 222 });
   const [colorB, setColorB] = useState(initialB?.rgb || { r: 214, g: 200, b: 183 });
+  const [metaA, setMetaA] = useState({ mfr: "", type: "", name: "" });
+  const [metaB, setMetaB] = useState({ mfr: "", type: "", name: "" });
   const [banner, setBanner] = useState(null);
   const [tB, setTB] = useState(0.5);
 

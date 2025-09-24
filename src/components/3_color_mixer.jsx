@@ -167,51 +167,60 @@ function ColorEditor({ title, color, setColor, meta, setMeta }) {
 
       {/* Manufacturer / Paint Type / Color Name */}
       <div className="col-span-2 grid grid-cols-1 gap-2 md:grid-cols-3">
-        {/* Manufacturer dropdown */}
-        <select
-          value={meta.mfr}
-          onChange={(e) => setMeta({ ...meta, mfr: e.target.value })}
-          className={`rounded-md border px-2 py-1 ${inputClass}`}
+{/* Manufacturer autocomplete */}
+<input
+  type="text"
+  value={meta.mfr}
+  onChange={(e) => setMeta({ ...meta, mfr: e.target.value })}
+  placeholder="Manufacturer"
+  className={`rounded-md border px-2 py-1 ${inputClass}`}
+/>
+{meta.mfr && (
+  <ul className="border rounded bg-white text-sm max-h-40 overflow-y-auto absolute z-10">
+    {[...new Set(paintColors.map((c) => c.mfr))]
+      .filter((m) => m.toLowerCase().includes(meta.mfr.toLowerCase()))
+      .map((m) => (
+        <li
+          key={m}
+          onClick={() => setMeta({ ...meta, mfr: m })}
+          className="px-2 py-1 hover:bg-gray-100 cursor-pointer"
         >
-          <option value="">Select Manufacturer</option>
-          {[...new Set(paintColors.map((c) => c.mfr))].map((m) => (
-            <option key={m} value={m}>
-              {m}
-            </option>
-          ))}
-        </select>
+          {m}
+        </li>
+      ))}
+  </ul>
+)}
 
-        {/* Paint Type (free text for now) */}
-        <input
-          type="text"
-          value={meta.type}
-          onChange={(e) => setMeta({ ...meta, type: e.target.value })}
-          placeholder="Paint Type (e.g., Eggshell)"
-          className={`rounded-md border px-2 py-1 ${inputClass}`}
-        />
-
-        {/* Color Name/Code dropdown */}
-        <select
-          value={meta.name}
-          onChange={(e) => {
-            const chosen = paintColors.find((c) => c.code === e.target.value);
-            if (chosen) {
-              setMeta({ ...meta, name: chosen.name + " " + chosen.code, mfr: chosen.mfr });
-              setColor(chosen.rgb); // auto-populate RGB
-            }
+{/* Color Name/Code autocomplete */}
+<input
+  type="text"
+  value={meta.name}
+  onChange={(e) => setMeta({ ...meta, name: e.target.value })}
+  placeholder="Color Name / Code"
+  className={`rounded-md border px-2 py-1 ${inputClass}`}
+/>
+{meta.name && (
+  <ul className="border rounded bg-white text-sm max-h-40 overflow-y-auto absolute z-10">
+    {paintColors
+      .filter((c) =>
+        (!meta.mfr || c.mfr === meta.mfr) &&
+        (c.name.toLowerCase().includes(meta.name.toLowerCase()) ||
+         c.code.toLowerCase().includes(meta.name.toLowerCase()))
+      )
+      .map((c) => (
+        <li
+          key={c.code}
+          onClick={() => {
+            setMeta({ ...meta, name: c.name + " " + c.code, mfr: c.mfr });
+            setColor(c.rgb); // auto-populate RGB
           }}
-          className={`rounded-md border px-2 py-1 ${inputClass}`}
+          className="px-2 py-1 hover:bg-gray-100 cursor-pointer"
         >
-          <option value="">Select Color</option>
-          {paintColors
-            .filter((c) => !meta.mfr || c.mfr === meta.mfr)
-            .map((c) => (
-              <option key={c.code} value={c.code}>
-                {c.name} ({c.code})
-              </option>
-            ))}
-        </select>
-      </div>
+          {c.name} ({c.code})
+        </li>
+      ))}
+  </ul>
+)}
 
       {/* Vertical color bar */}
       <div className="row-span-6 flex items-center">

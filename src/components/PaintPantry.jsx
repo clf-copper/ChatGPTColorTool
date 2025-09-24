@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import paintColors from "../data/paintColors.json";
+import paintColors from "../data/paintcolors.json";
 
 export default function PaintPantry({ onSelectPaint }) {
   const [paints, setPaints] = useState([]);
